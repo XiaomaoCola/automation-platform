@@ -1,3 +1,4 @@
+```
 automation-platform/
 ├─ README.md
 ├─ pyproject.toml                 # 统一依赖与打包（也可 requirements.txt）
@@ -35,3 +36,4 @@ automation-platform/
 │  ├─ hello_sleep.yaml
 │  └─ coc_builder_base_attack.yaml
 └─ run_local.sh                   # 一键本地启动（可选）
+```
