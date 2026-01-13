@@ -1,0 +1,7 @@
+# 目前采用requirements.txt + pyproject.toml，
+# requirements.txt：用来平时装库， pyproject.toml：让项目结构干净。
+
+# 等到以后，再采用只用 pyproject.toml 管一切（依赖也写进去）。
+
+fastapi>=0.110
+uvicorn[standard]>=0.27
