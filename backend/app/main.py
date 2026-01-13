@@ -31,16 +31,28 @@ from app.services.registry import ScriptRegistry
 from app.services.runner import RunnerService
 from app.storage.state_store import InMemoryStateStore
 
+import logging
+
+logger = logging.getLogger("app.main")
+
 
 def create_app() -> FastAPI:
     setup_logging()
     settings = get_settings()
 
+    logger.info("project_root=%s", settings.project_root)
+    logger.info("scripts_dir=%s", settings.scripts_dir)
+    logger.info("script_specs_dir=%s", settings.script_specs_dir)
+
     store = InMemoryStateStore(logs_max_lines=settings.logs_max_lines)
-    registry = ScriptRegistry(scripts_dir=settings.scripts_dir, specs_dir=settings.script_specs_dir)
+    registry = ScriptRegistry(
+        project_root=settings.project_root,
+        scripts_dir=settings.scripts_dir,
+        specs_dir=settings.script_specs_dir
+    )
     runner = RunnerService(store)
 
-    app = FastAPI(title="Automation Platform", version="0.1.0")
+    app = FastAPI(title="Automation Platform", version="0.2.0")
     app.include_router(health_router)
 
     scripts_router = build_router(registry=registry, runner=runner, store=store)

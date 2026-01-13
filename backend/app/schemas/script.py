@@ -39,3 +39,15 @@ class RunLogs(BaseModel):
     run_id: str
     lines: List[str]
     truncated: bool = False
+
+from typing import Any, Dict, Optional
+from pydantic import BaseModel
+
+class ScriptDetail(BaseModel):
+    script_id: str
+    entry: str
+    description: str = ""
+    cwd: Optional[str] = None
+    timeout_s: Optional[float] = None
+    env: Dict[str, str] = {}
+    args_schema: Dict[str, Any] = {}

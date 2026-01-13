@@ -3,36 +3,53 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app.schemas.script import CreateRunRequest, RunInfo, RunLogs, ScriptInfo
-from app.services.registry import ScriptRegistry
+from app.schemas.script import CreateRunRequest, RunInfo, RunLogs, RunStatus
+from app.services.registry import ScriptRegistry, ScriptSpec
 from app.services.runner import RunnerService
 from app.storage.state_store import InMemoryStateStore
-from app.schemas.script import RunStatus
 
 router = APIRouter(tags=["scripts"])
 
 
-def build_router(*, registry: ScriptRegistry, runner: RunnerService, store: InMemoryStateStore) -> APIRouter:
-    """
-    Simple factory to close over dependencies without overusing Depends right now.
-    """
+def spec_to_dict(s: ScriptSpec) -> dict:
+    return {
+        "script_id": s.script_id,
+        "entry": s.entry,
+        "description": s.description,
+        "cwd": s.cwd,
+        "timeout_s": s.timeout_s,
+        "env": s.env or {},
+        "args_schema": s.args_schema or {},
+    }
 
-    @router.get("/scripts", response_model=list[ScriptInfo])
+
+def build_router(*, registry: ScriptRegistry, runner: RunnerService, store: InMemoryStateStore) -> APIRouter:
+
+    @router.get("/scripts")
     def list_scripts():
-        return registry.list_scripts()
+        specs = registry.list()
+        return [spec_to_dict(s) for s in specs]
 
     @router.post("/runs", response_model=RunInfo)
     def create_run(req: CreateRunRequest):
         try:
-            info = registry.get(req.script_id)
+            spec = registry.get(req.script_id)
         except KeyError as e:
             raise HTTPException(status_code=404, detail=str(e))
 
-        script_path = registry.resolve_entry_path(info.entry)
+        script_path = registry.resolve_script_path(spec.entry)
         if not script_path.exists():
             raise HTTPException(status_code=404, detail=f"Script file not found: {script_path}")
 
-        run_id = runner.start(script_id=info.script_id, script_path=script_path, params=req.params)
+        cwd = registry.resolve_cwd(spec.cwd)
+        run_id = runner.start(
+            script_id=spec.script_id,
+            script_path=script_path,
+            params=req.params,
+            cwd=cwd,
+            env=spec.env,
+            timeout_s=spec.timeout_s,
+        )
 
         rec = store.get_run(run_id)
         assert rec is not None
@@ -77,11 +94,6 @@ def build_router(*, registry: ScriptRegistry, runner: RunnerService, store: InMe
         ok = runner.stop(run_id)
         if not ok:
             raise HTTPException(status_code=404, detail="run_id not running or not found")
-
-        # We do not immediately mark stopped here because proc may still be exiting.
-        # But you can choose to set status early:
-        store.set_status(run_id, RunStatus.stopped)
-
         return {"ok": True, "run_id": run_id}
 
     return router

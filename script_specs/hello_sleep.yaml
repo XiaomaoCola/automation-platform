@@ -1,0 +1,12 @@
+id: hello_sleep
+entry: examples/hello_sleep.py
+description: "Sleep 5 seconds and print logs."
+timeout_s: 10
+cwd: scripts
+env:
+  DEMO_MODE: "1"
+args_schema:
+  seconds:
+    type: number
+    default: 5
+    description: "Sleep seconds"
