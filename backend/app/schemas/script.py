@@ -40,8 +40,6 @@ class RunLogs(BaseModel):
     lines: List[str]
     truncated: bool = False
 
-from typing import Any, Dict, Optional
-from pydantic import BaseModel
 
 class ScriptDetail(BaseModel):
     script_id: str

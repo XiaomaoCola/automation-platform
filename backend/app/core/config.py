@@ -10,7 +10,9 @@ def find_project_root(start: Path) -> Path:
     This avoids fragile `.parents[n]` assumptions.
     """
     start = start.resolve()
+    # .resolve()把路径变成绝对路径，比如/Users/xxx/project/backend/app/core/config.py。
     markers = {"pyproject.toml", "README.md"}
+    # 这里的意思是：“只要某个目录下有这些文件之一，就认为它是项目根目录”。
 
     for p in [start, *start.parents]:
         for m in markers:
@@ -33,6 +35,7 @@ class Settings:
 def get_settings() -> Settings:
     # this file: backend/app/core/config.py
     here = Path(__file__)
+    # __file__ 永远等于“当前这个 .py 文件的路径”。
     project_root = find_project_root(here)
 
     return Settings(

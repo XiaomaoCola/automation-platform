@@ -37,3 +37,22 @@ automation-platform/
 │  └─ coc_builder_base_attack.yaml
 └─ run_local.sh                   # 一键本地启动（可选）
 ```
+
+```angular2html
+┌───────────────┐
+│   Client      │  浏览器 / curl / 前端 / HR 点域名
+└──────┬────────┘
+       │ HTTP
+┌──────▼────────┐
+│   app/api     │  
+│ (路由层)       │
+└──────┬────────┘
+       │ Python 函数调用
+┌──────▼────────┐
+│ app/services  │  业务逻辑（跑脚本 / 管理状态）
+└──────┬────────┘
+       │
+┌──────▼────────┐
+│ app/storage   │  状态存储（内存 / Redis）
+└───────────────┘
+```

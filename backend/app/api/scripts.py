@@ -11,26 +11,30 @@ from app.storage.state_store import InMemoryStateStore
 router = APIRouter(tags=["scripts"])
 
 
-def spec_to_dict(s: ScriptSpec) -> dict:
+def spec_to_dict(script_spec: ScriptSpec) -> dict:
     return {
-        "script_id": s.script_id,
-        "entry": s.entry,
-        "description": s.description,
-        "cwd": s.cwd,
-        "timeout_s": s.timeout_s,
-        "env": s.env or {},
-        "args_schema": s.args_schema or {},
+        "script_id": script_spec.script_id,
+        "entry": script_spec.entry,
+        "description": script_spec.description,
+        "cwd": script_spec.cwd,
+        "timeout_s": script_spec.timeout_s,
+        "env": script_spec.env or {},
+        "args_schema": script_spec.args_schema or {},
     }
 
 
 def build_router(*, registry: ScriptRegistry, runner: RunnerService, store: InMemoryStateStore) -> APIRouter:
 
     @router.get("/scripts")
+    # 如果有人用浏览器 / 程序访问/scripts，比如http://127.0.0.1:8000/scripts，FastAPI 会自动帮调用 list_scripts()。
     def list_scripts():
         specs = registry.list()
         return [spec_to_dict(s) for s in specs]
 
     @router.post("/runs", response_model=RunInfo)
+    # GET：要“看东西”
+    # POST：要“干一件新事”，即启动一个新进程，也就是改变了系统状态。
+    # response_model = “规定这个接口最终返回的数据长什么样”
     def create_run(req: CreateRunRequest):
         try:
             spec = registry.get(req.script_id)
