@@ -74,8 +74,10 @@ class ScriptRegistry:
 
     def list(self) -> List[ScriptSpec]:
         if not self._cache:
+        # None, False, 0, "", {}, []等等所有“空容器”都是 False。
             self.reload()
         return list(self._cache.values())
+        # .keys(), .values(), .items返回的是：Python 内置的、只属于 dict 的一种特殊对象。
 
     def get(self, script_id: str) -> ScriptSpec:
         if not self._cache:
@@ -88,6 +90,7 @@ class ScriptRegistry:
         return (self._scripts_dir / entry).resolve()
 
     def resolve_cwd(self, cwd: Optional[str]) -> Optional[Path]:
+    # cwd = current working directory
         if not cwd:
             return None
         # allow cwd relative to project root
