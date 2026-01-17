@@ -34,6 +34,7 @@ class ScriptRegistry:
 
     def reload(self) -> None:
         self._cache.clear()
+        # .clear() 是 dict / list / set 的清空。
 
         logger.info("Loading specs from: %s", self._specs_dir)
         if not self._specs_dir.exists():
@@ -80,6 +81,18 @@ class ScriptRegistry:
         # .keys(), .values(), .items返回的是：Python 内置的、只属于 dict 的一种特殊对象。
 
     def get(self, script_id: str) -> ScriptSpec:
+        """
+        由一个script_id，直接拿到对应的ScriptSpec。
+
+        Args:
+            script_id: Unique identifier of the script.
+
+        Returns:
+            The corresponding ScriptSpec.
+
+        Raises:
+            KeyError: If the script_id is unknown.
+        """
         if not self._cache:
             self.reload()
         if script_id not in self._cache:

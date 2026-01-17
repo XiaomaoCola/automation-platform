@@ -98,9 +98,15 @@ class RunnerService:
         timeout_s: Optional[float] = None,
     ) -> str:
         run_id = str(uuid.uuid4())
+        # 这边是生成一个全局唯一的 ID。
+        # UUID（Universally Unique Identifier，全局唯一标识符）
+        # UUID 的例子：4a0c693d-0a83-413e-9bbd-9064eddfaef5。
+        # UUID 的特征：128 位（16 字节），十六进制字符串，分5段，用-分隔。
+        # UUID 的设计目标只有一个：在不同机器、不同时刻、不同进程生成，几乎不可能撞号。
 
         cli_args = params_to_cli_args(params)
         cmd = [sys.executable, "-u", str(script_path), *cli_args]
+        # 拼出启动命令 cmd。
 
         proc = subprocess.Popen(
             cmd,
@@ -114,6 +120,7 @@ class RunnerService:
 
         with self._lock:
             self._procs[run_id] = proc
+            # 把进程保存到字典里。
 
         self._store.create_run(run_id=run_id, script_id=script_id, pid=proc.pid)
 
@@ -122,6 +129,10 @@ class RunnerService:
             args=(run_id, proc, timeout_s),
             daemon=True,
         )
+        # 开一个后台线程去读输出，看超时。
+        # target=self._stream_and_watch：这个线程要执行哪个函数。
+        # args=(...)：给 target 函数传参数。
+        # daemon=True：守护线程，主进程退出时，不会因为它还在跑而卡住退出（它会被直接干掉）。
         t.start()
 
         logger.info(
